@@ -1,0 +1,5 @@
+name = codigo_postal_interfaz
+description = "modulo codigos postales interfaz"
+core = 6.x
+package = "Mis Modulos"
+dependencies[] = codigo_postal_autocompletar

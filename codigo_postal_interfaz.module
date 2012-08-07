@@ -1,0 +1,100 @@
+<?php
+
+/**
+ * @file masquerade.module
+ *
+ * The masquerade module allows administrators to masquerade as other user.
+ */
+function codigo_postal_interfaz_perm() {
+  return array('use autocomplete');
+}
+
+/**
+ * Implementation of hook_init().
+ */
+function codigo_postal_interfaz_init() {
+drupal_add_css(drupal_get_path('module', 'codigo_postal_interfaz') .'/my_style.css');
+	
+}
+function codigo_postal_interfaz_menu() {
+  $items = array();
+  $items['codigo_postal_interfaz'] = array(
+    'title' => 'formulario codigo postal',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('codigo_postal_interfaz_form'),
+    'access callback' => 'user_access', // para que si no se ha iniciado sesión, no se pueda ver.
+  	'access arguments' => array('use autocomplete'),// tipo de permiso que necesita el usuario.
+    'type' => MENU_NORMAL_ITEM,
+  );
+  // path with autocomplete function for cities
+  $items['codigo_postal_interfaz/autocomplete'] = array(
+      'title' => 'Autocomplete for street',
+      'page callback' => 'calles_correos_autocomplete',
+      'access arguments' => array('use autocomplete'),  //or whatever permission makes sense
+      'type' => MENU_CALLBACK,
+    );
+
+  return $items;
+}
+
+function codigo_postal_interfaz_form($form_state){
+	$form = array();
+	
+	ahah_helper_register($form,$form_state);
+	if(!isset($form_state['storage']['frame']['calle'])){
+		$usage_default_value= "";//inicializo el valor a cero.
+	}
+	else{ 		
+	 	$usage_default_value = $form_state['storage']['frame']['calle'];	 	
+	}
+	
+	$form['frame'] = array(
+		'#type' => 'fieldset',
+		'#title'  => t('Formulario Autocompletar Calle'),
+   		'#prefix' => '<div id="formu-calles-correos">', // This is our wrapper div.
+   		'#suffix' => '</div>',
+    	'#tree'   => TRUE, 
+	  );
+	$form['frame']['tipovia'] = array(
+		'#type' => 'textfield',
+		'#title' => 'Tipo Via',
+		'#id' => 'id_tipo_via',
+		'#default_value' => calles_correos_devolver_tipo_via($usage_default_value),
+		'#prefix' => '<div id="id_campos">', // This is our wrapper div.
+   		'#suffix' => '</div>',
+		);
+	$form['frame']['calle'] = array(
+	   	'#type' => 'textfield',
+    	'#title' => 'Calle',
+    	'#autocomplete_path' => 'codigo_postal_interfaz/autocomplete',
+		'#default_value' => calles_correos_devolver_via_codigo_registro($usage_default_value),
+		'#ahah' => array (
+			'event' => 'blur', // libro Apress - Pro Drupal Development 2nd Edition (2008) pag 268
+			'path' => ahah_helper_path(array('frame')),
+			'wrapper' => 'formu-calles-correos',
+			'effect' => 'fade',
+		),
+		'#id' => 'id_calle',
+		'#prefix' => '<div id="id_campos">', // This is our wrapper div.
+   		'#suffix' => '</div>',
+  		);
+ 	 $form['frame']['codigopostal'] = array(
+  		'#type' => 'textfield',
+  		'#title' =>  'Codigo'.'<br>'.'Postal',
+  		'#default_value' => calles_correos_devolver_codigo_postal($usage_default_value),
+  		'#id' => 'id_clase_cp',
+  		'#prefix' => '<div id="id_campos">', // This is our wrapper div.
+   		'#suffix' => '</div>',
+  		);
+  	$form['frame']['provincia'] = array(
+  		'#type' => 'textfield',
+  	    '#title' => 'Provincia',
+  		'#id' => 'id_provincia',
+  		'#default_value' => calles_correos_devolver_provincia($usage_default_value),
+  		'#prefix' => '<div id="id_campos">',
+  		'#suffix' => '</div>',
+  		);	
+
+  return $form;
+}
+
